@@ -14,6 +14,34 @@ const loadVideos = () => {
     .catch((error) => console.log(error));
 };
 
+const removeActiveClass=()=>{
+  const buttons=document.getElementsByClassName("category-btn");
+  // console.log(buttons);
+  for(let btn of buttons){
+    btn.classList.remove("active");
+  }
+  
+
+}
+
+
+const loadCategoryVideos =(id)=>{
+  //alert(id);
+  fetch(`https://openapi.programming-hero.com/api/phero-tube/category/${id}`)
+    .then((res) => res.json())
+    .then((data) => {
+
+      //remove color to all button
+      removeActiveClass();
+
+      //add color to button that is active
+      const activeBtn =document.getElementById(`btn-${id}`);
+      activeBtn.classList.add("active");
+      displayVideos(data.category)
+    })
+    .catch((error) => console.log(error));
+}
+
 function getTimeString(time){
   const hour =parseInt(time/3600);
   let remainingSecond =time % 3600;
@@ -29,14 +57,15 @@ const displayCategories = (categories) => {
   const categoryContainer = document.getElementById("categories");
 
   categories.forEach((item) => {
-    console.log(item);
+    // console.log(item);
     //create a button
-    const button = document.createElement("button");
-    button.classList = "btn";
-    button.innerText = item.category;
+    const buttonContainer = document.createElement("div");
+    buttonContainer.innerHTML=`
+    <button id="btn-${item.category_id}" onclick="loadCategoryVideos(${item.category_id})" class="btn category-btn">${item.category}</button>
+    `
 
     //add button to category container
-    categoryContainer.append(button);
+    categoryContainer.append(buttonContainer);
   });
 };
 
@@ -61,8 +90,24 @@ const displayCategories = (categories) => {
 
 const displayVideos = (videos) => {
   const videoContainer = document.getElementById("videos");
+  videoContainer.innerHTML="";
+
+  if(videos.length==0){
+    videoContainer.classList.remove("grid");
+    videoContainer.innerHTML=`
+    <div class ="min-h-[300px] flex flex-col gap-5 justify-center items-center">
+    <img src="assets/Icon.png"/>
+    <h2 class="text-center text-xl font-bold">No content here</h2>
+    </div>
+    `;
+    return ;
+  }
+  else{
+    videoContainer.classList.add("grid");
+  }
+
   videos.forEach((video) => {
-    console.log(video);
+    // console.log(video);
     //create cards
     const card = document.createElement("div");
     card.classList = "card card-compact";
@@ -71,7 +116,7 @@ const displayVideos = (videos) => {
       <img src=${video.thumbnail} class="h-full w-full object-cover" alt="" />
      
       ${
-        video.others.posted_date?.length == 0 ? "":`<span class="absolute right-2 bottom-2 bg-black text-white rounded p-1">${getTimeString(video.others.posted_date)}</span>`
+        video.others.posted_date?.length == 0 ? "":`<span class="absolute text-xs right-2 bottom-2 bg-black text-white rounded p-1">${getTimeString(video.others.posted_date)}</span>`
       }
 
       
